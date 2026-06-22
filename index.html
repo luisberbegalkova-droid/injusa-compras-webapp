@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>INJUSA · Compras</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --line: #e5e7eb;
+      --primary: #1f4e79;
+      --primary-soft: #e8f1fb;
+      --danger: #b42318;
+      --warning: #b54708;
+      --success: #027a48;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      padding: 22px 28px;
+      background: linear-gradient(135deg, #153c60, #1f4e79);
+      color: white;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: -0.4px;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      opacity: 0.85;
+      font-size: 14px;
+    }
+
+    main {
+      padding: 24px;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 15px;
+      cursor: pointer;
+      background: #e9edf3;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    button.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    button.secondary {
+      background: white;
+      border: 1px solid var(--line);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .metric-value {
+      margin-top: 8px;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 1fr auto;
+      gap: 12px;
+      margin-bottom: 18px;
+      align-items: center;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      white-space: nowrap;
+      font-size: 14px;
+    }
+
+    .check input {
+      width: auto;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: calc(100vh - 320px);
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: white;
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 1180px;
+      width: 100%;
+      font-size: 13px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f9fafb;
+      border-bottom: 1px solid var(--line);
+      padding: 11px 10px;
+      text-align: left;
+      white-space: nowrap;
+      color: #344054;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody td {
+      border-bottom: 1px solid #edf0f4;
+      padding: 9px 10px;
+      vertical-align: top;
+    }
+
+    tbody tr:hover {
+      background: #f8fbff;
+    }
+
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .need {
+      color: #d92d20;
+      font-weight: 800;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: 800;
+      min-width: 38px;
+    }
+
+    .badge.MP {
+      background: #eef4ff;
+      color: #3538cd;
+    }
+
+    .badge.SE {
+      background: #ecfdf3;
+      color: #027a48;
+    }
+
+    .badge.PT {
+      background: #fff7ed;
+      color: #c2410c;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .provider-list {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .provider-list h2 {
+      margin: 0;
+      padding: 16px;
+      font-size: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .provider-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #edf0f4;
+      cursor: pointer;
+    }
+
+    .provider-item:hover {
+      background: #f8fbff;
+    }
+
+    .provider-name {
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .provider-meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status {
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .error {
+      background: #fef3f2;
+      color: var(--danger);
+      border: 1px solid #fecdca;
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .empty {
+      padding: 30px;
+      text-align: center;
+      color: var(--muted);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    @media (max-width: 1100px) {
+      .summary {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .table-wrap {
+        max-height: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>INJUSA · Necesidades de compra</h1>
+    <p>Visualización de necesidades por materia prima, semielaborado y producto terminado.</p>
+  </header>
+
+  <main>
+    <div class="topbar">
+      <div class="tabs">
+        <button id="tabTODAS" class="active" onclick="setCategoria('')">Todas</button>
+        <button id="tabMP" onclick="setCategoria('MP')">Materias primas</button>
+        <button id="tabSE" onclick="setCategoria('SE')">Semielaborados</button>
+        <button id="tabPT" onclick="setCategoria('PT')">Producto terminado</button>
+      </div>
+
+      <button class="secondary" onclick="loadData()">Actualizar datos</button>
+    </div>
+
+    <div id="status" class="status">Cargando datos...</div>
+    <div id="error"></div>
+
+    <section class="summary">
+      <div class="card">
+        <div class="metric-label">Líneas visibles</div>
+        <div id="mLineas" class="metric-value">-</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">MP</div>
+        <div id="mMP" class="metric-value">-</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">SE</div>
+        <div id="mSE" class="metric-value">-</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">PT</div>
+        <div id="mPT" class="metric-value">-</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">Sin proveedor</div>
+        <div id="mSinProveedor" class="metric-value">-</div>
+      </div>
+    </section>
+
+    <section class="filters">
+      <input id="searchInput" placeholder="Buscar por código, descripción o proveedor..." oninput="render()" />
+      <select id="providerFilter" onchange="render()">
+        <option value="">Todos los proveedores</option>
+      </select>
+      <select id="sortFilter" onchange="render()">
+        <option value="necesidad_desc">Ordenar: mayor necesidad</option>
+        <option value="codigo_asc">Ordenar: código</option>
+        <option value="proveedor_asc">Ordenar: proveedor</option>
+        <option value="coste_desc">Ordenar: mayor coste</option>
+      </select>
+      <label class="check">
+        <input id="sinProveedorCheck" type="checkbox" onchange="render()" />
+        Solo sin proveedor
+      </label>
+    </section>
+
+    <section class="layout">
+      <div>
+        <div id="tableContainer"></div>
+      </div>
+
+      <aside class="provider-list">
+        <h2>Resumen por proveedor</h2>
+        <div id="providersContainer"></div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbz-zcqfRnyc9FEQUh1LyCDtfJJWGyrjnibAIOMJ6A1GjMg6fZ6qu3_Fq7Ydg8rVtjvLVQ/exec';
+    const API_TOKEN = 'INJUSA_COMPRAS_WEBAPP_TOKEN_2026';
+
+    let rawData = [];
+    let activeCategoria = '';
+
+    function setCategoria(categoria) {
+      activeCategoria = categoria;
+      document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+
+      const id = categoria ? 'tab' + categoria : 'tabTODAS';
+      document.getElementById(id).classList.add('active');
+
+      render();
+    }
+
+    function loadJsonp(params) {
+      return new Promise((resolve, reject) => {
+        const callbackName = '__injusa_cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+
+        const url = new URL(API_URL);
+        Object.keys(params).forEach(key => url.searchParams.set(key, params[key]));
+        url.searchParams.set('callback', callbackName);
+
+        const script = document.createElement('script');
+        script.src = url.toString();
+        script.async = true;
+
+        const timeout = setTimeout(() => {
+          cleanup();
+          reject(new Error('Tiempo de espera agotado al llamar a la API.'));
+        }, 20000);
+
+        function cleanup() {
+          clearTimeout(timeout);
+          delete window[callbackName];
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        window[callbackName] = (data) => {
+          cleanup();
+          resolve(data);
+        };
+
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('No se pudo cargar la API.'));
+        };
+
+        document.body.appendChild(script);
+      });
+    }
+
+    async function loadData() {
+      setError('');
+      setStatus('Cargando datos...');
+
+      try {
+        const response = await loadJsonp({
+          action: 'getNecesidadesCompra',
+          token: API_TOKEN
+        });
+
+        if (!response.ok) {
+          throw new Error(response.error || 'La API devolvió error.');
+        }
+
+        rawData = Array.isArray(response.data) ? response.data : [];
+        populateProviderFilter(rawData);
+        setStatus('Datos actualizados: ' + new Date().toLocaleString('es-ES'));
+        render();
+
+      } catch (err) {
+        setError(err.message);
+        setStatus('Error cargando datos.');
+      }
+    }
+
+    function populateProviderFilter(data) {
+      const select = document.getElementById('providerFilter');
+      const current = select.value;
+
+      const providers = [...new Set(data
+        .map(row => clean(row.nombre_proveedor))
+        .filter(Boolean)
+      )].sort((a, b) => a.localeCompare(b, 'es'));
+
+      select.innerHTML = '<option value="">Todos los proveedores</option>';
+
+      providers.forEach(provider => {
+        const option = document.createElement('option');
+        option.value = provider;
+        option.textContent = provider;
+        select.appendChild(option);
+      });
+
+      if (providers.includes(current)) {
+        select.value = current;
+      }
+    }
+
+    function getFilteredData() {
+      const search = clean(document.getElementById('searchInput').value).toLowerCase();
+      const provider = document.getElementById('providerFilter').value;
+      const onlyNoProvider = document.getElementById('sinProveedorCheck').checked;
+      const sort = document.getElementById('sortFilter').value;
+
+      let data = rawData.filter(row => {
+        const categoria = clean(row.itemcategorygroup_wau);
+        const prov = clean(row.nombre_proveedor);
+
+        if (activeCategoria && categoria !== activeCategoria) return false;
+        if (provider && prov !== provider) return false;
+        if (onlyNoProvider && prov) return false;
+
+        if (search) {
+          const text = [
+            row.no,
+            row.description,
+            row.nombre_proveedor,
+            row.vendor_no,
+            row.itemcategorygroup_wau
+          ].map(clean).join(' ').toLowerCase();
+
+          if (!text.includes(search)) return false;
+        }
+
+        return true;
+      });
+
+      data.sort((a, b) => {
+        if (sort === 'codigo_asc') {
+          return clean(a.no).localeCompare(clean(b.no), 'es');
+        }
+
+        if (sort === 'proveedor_asc') {
+          return clean(a.nombre_proveedor).localeCompare(clean(b.nombre_proveedor), 'es');
+        }
+
+        if (sort === 'coste_desc') {
+          return parseNumber(b.single_level_material_cost) - parseNumber(a.single_level_material_cost);
+        }
+
+        return parseNumber(b.necesidad_neta_nn) - parseNumber(a.necesidad_neta_nn);
+      });
+
+      return data;
+    }
+
+    function render() {
+      const data = getFilteredData();
+
+      renderMetrics(data);
+      renderTable(data);
+      renderProviders(data);
+    }
+
+    function renderMetrics(data) {
+      const mp = data.filter(row => row.itemcategorygroup_wau === 'MP').length;
+      const se = data.filter(row => row.itemcategorygroup_wau === 'SE').length;
+      const pt = data.filter(row => row.itemcategorygroup_wau === 'PT').length;
+      const sinProveedor = data.filter(row => !clean(row.nombre_proveedor)).length;
+
+      document.getElementById('mLineas').textContent = formatInt(data.length);
+      document.getElementById('mMP').textContent = formatInt(mp);
+      document.getElementById('mSE').textContent = formatInt(se);
+      document.getElementById('mPT').textContent = formatInt(pt);
+      document.getElementById('mSinProveedor').textContent = formatInt(sinProveedor);
+    }
+
+    function renderTable(data) {
+      const container = document.getElementById('tableContainer');
+
+      if (!data.length) {
+        container.innerHTML = '<div class="empty">No hay líneas con los filtros actuales.</div>';
+        return;
+      }
+
+      const rows = data.map(row => {
+        const categoria = clean(row.itemcategorygroup_wau);
+        const proveedor = clean(row.nombre_proveedor) || '<span class="muted">Sin proveedor</span>';
+        const vendor = clean(row.vendor_no) || '<span class="muted">-</span>';
+
+        return `
+          <tr>
+            <td><strong>${escapeHtml(row.no)}</strong></td>
+            <td>${escapeHtml(row.description)}</td>
+            <td><span class="badge ${escapeHtml(categoria)}">${escapeHtml(categoria)}</span></td>
+            <td class="num">${escapeHtml(row.single_level_material_cost)}</td>
+            <td class="num">${escapeHtml(row.recepcion_programada_rp)}</td>
+            <td class="num need">${escapeHtml(row.necesidad_neta_nn)}</td>
+            <td class="num">${escapeHtml(row.inventory_injusa)}</td>
+            <td>${proveedor}</td>
+            <td>${vendor}</td>
+          </tr>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Descripción</th>
+                <th>Tipo</th>
+                <th class="num">Coste</th>
+                <th class="num">Recepción</th>
+                <th class="num">Necesidad</th>
+                <th class="num">Stock</th>
+                <th>Proveedor</th>
+                <th>Vendor</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderProviders(data) {
+      const container = document.getElementById('providersContainer');
+
+      const map = new Map();
+
+      data.forEach(row => {
+        const name = clean(row.nombre_proveedor) || 'Sin proveedor';
+        const current = map.get(name) || {
+          name,
+          lineas: 0,
+          necesidad: 0
+        };
+
+        current.lineas += 1;
+        current.necesidad += parseNumber(row.necesidad_neta_nn);
+
+        map.set(name, current);
+      });
+
+      const providers = [...map.values()]
+        .sort((a, b) => b.lineas - a.lineas || a.name.localeCompare(b.name, 'es'))
+        .slice(0, 40);
+
+      if (!providers.length) {
+        container.innerHTML = '<div class="provider-item muted">Sin datos.</div>';
+        return;
+      }
+
+      container.innerHTML = providers.map(item => `
+        <div class="provider-item" onclick="filterByProvider('${escapeAttribute(item.name)}')">
+          <div class="provider-name">${escapeHtml(item.name)}</div>
+          <div class="provider-meta">
+            ${formatInt(item.lineas)} líneas · necesidad total ${formatNumber(item.necesidad)}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterByProvider(provider) {
+      const select = document.getElementById('providerFilter');
+
+      if ([...select.options].some(option => option.value === provider)) {
+        select.value = provider;
+        render();
+      }
+    }
+
+    function parseNumber(value) {
+      if (value === null || value === undefined) return 0;
+
+      const s = String(value)
+        .trim()
+        .replace(/\./g, '')
+        .replace(',', '.');
+
+      const n = Number(s);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function clean(value) {
+      return String(value || '').trim();
+    }
+
+    function formatInt(value) {
+      return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value || 0);
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 }).format(value || 0);
+    }
+
+    function setStatus(message) {
+      document.getElementById('status').textContent = message;
+    }
+
+    function setError(message) {
+      document.getElementById('error').innerHTML = message
+        ? `<div class="error">${escapeHtml(message)}</div>`
+        : '';
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function escapeAttribute(value) {
+      return escapeHtml(value).replaceAll('`', '&#096;');
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
