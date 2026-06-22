@@ -98,7 +98,7 @@
 
     .summary {
       display: grid;
-      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      grid-template-columns: repeat(6, minmax(145px, 1fr));
       gap: 14px;
       margin-bottom: 18px;
     }
@@ -376,6 +376,10 @@
         <div class="metric-label">Sin proveedor</div>
         <div id="mSinProveedor" class="metric-value">-</div>
       </div>
+      <div class="card">
+        <div class="metric-label">Importe neto visible</div>
+        <div id="mImporte" class="metric-value">-</div>
+      </div>
     </section>
 
     <section class="filters">
@@ -384,6 +388,7 @@
         <option value="">Todos los proveedores</option>
       </select>
       <select id="sortFilter" onchange="render()">
+        <option value="importe_desc">Ordenar: mayor importe neto</option>
         <option value="necesidad_desc">Ordenar: mayor necesidad</option>
         <option value="codigo_asc">Ordenar: código</option>
         <option value="proveedor_asc">Ordenar: proveedor</option>
@@ -547,6 +552,10 @@
           return clean(a.nombre_proveedor).localeCompare(clean(b.nombre_proveedor), 'es');
         }
 
+        if (sort === 'importe_desc') {
+          return getImporteNeto(b) - getImporteNeto(a);
+        }
+
         if (sort === 'coste_desc') {
           return parseNumber(b.single_level_material_cost) - parseNumber(a.single_level_material_cost);
         }
@@ -570,12 +579,14 @@
       const se = data.filter(row => row.itemcategorygroup_wau === 'SE').length;
       const pt = data.filter(row => row.itemcategorygroup_wau === 'PT').length;
       const sinProveedor = data.filter(row => !clean(row.nombre_proveedor)).length;
+      const importe = data.reduce((sum, row) => sum + getImporteNeto(row), 0);
 
       document.getElementById('mLineas').textContent = formatInt(data.length);
       document.getElementById('mMP').textContent = formatInt(mp);
       document.getElementById('mSE').textContent = formatInt(se);
       document.getElementById('mPT').textContent = formatInt(pt);
       document.getElementById('mSinProveedor').textContent = formatInt(sinProveedor);
+      document.getElementById('mImporte').textContent = formatCurrency(importe);
     }
 
     function renderTable(data) {
@@ -590,6 +601,7 @@
         const categoria = clean(row.itemcategorygroup_wau);
         const proveedor = clean(row.nombre_proveedor) || '<span class="muted">Sin proveedor</span>';
         const vendor = clean(row.vendor_no) || '<span class="muted">-</span>';
+        const importe = getImporteNeto(row);
 
         return `
           <tr>
@@ -600,6 +612,7 @@
             <td class="num">${escapeHtml(row.recepcion_programada_rp)}</td>
             <td class="num need">${escapeHtml(row.necesidad_neta_nn)}</td>
             <td class="num">${escapeHtml(row.inventory_injusa)}</td>
+            <td class="num"><strong>${formatCurrency(importe)}</strong></td>
             <td>${proveedor}</td>
             <td>${vendor}</td>
           </tr>
@@ -618,6 +631,7 @@
                 <th class="num">Recepción</th>
                 <th class="num">Necesidad</th>
                 <th class="num">Stock</th>
+                <th class="num">Importe neto</th>
                 <th>Proveedor</th>
                 <th>Vendor</th>
               </tr>
@@ -638,17 +652,19 @@
         const current = map.get(name) || {
           name,
           lineas: 0,
-          necesidad: 0
+          necesidad: 0,
+          importe: 0
         };
 
         current.lineas += 1;
         current.necesidad += parseNumber(row.necesidad_neta_nn);
+        current.importe += getImporteNeto(row);
 
         map.set(name, current);
       });
 
       const providers = [...map.values()]
-        .sort((a, b) => b.lineas - a.lineas || a.name.localeCompare(b.name, 'es'))
+        .sort((a, b) => b.importe - a.importe || b.lineas - a.lineas || a.name.localeCompare(b.name, 'es'))
         .slice(0, 40);
 
       if (!providers.length) {
@@ -660,7 +676,7 @@
         <div class="provider-item" onclick="filterByProvider('${escapeAttribute(item.name)}')">
           <div class="provider-name">${escapeHtml(item.name)}</div>
           <div class="provider-meta">
-            ${formatInt(item.lineas)} líneas · necesidad total ${formatNumber(item.necesidad)}
+            ${formatInt(item.lineas)} líneas · ${formatCurrency(item.importe)} · necesidad ${formatNumber(item.necesidad)}
           </div>
         </div>
       `).join('');
@@ -687,6 +703,16 @@
       return Number.isFinite(n) ? n : 0;
     }
 
+    function getImporteNeto(row) {
+      const directo = parseNumber(row.importe_neto);
+
+      if (directo !== 0) {
+        return directo;
+      }
+
+      return parseNumber(row.single_level_material_cost) * parseNumber(row.necesidad_neta_nn);
+    }
+
     function clean(value) {
       return String(value || '').trim();
     }
@@ -697,6 +723,14 @@
 
     function formatNumber(value) {
       return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 }).format(value || 0);
+    }
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'EUR',
+        maximumFractionDigits: 2
+      }).format(value || 0);
     }
 
     function setStatus(message) {
