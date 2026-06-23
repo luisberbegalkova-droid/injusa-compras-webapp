@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>INJUSA · Compras Dark </title>
+  <title>INJUSA · Compras Dark Mode</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -114,6 +114,8 @@
     main {
       padding: 16px 32px 32px;
       width: 100%;
+      display: flex;
+      flex-direction: column;
     }
 
     .topbar {
@@ -162,7 +164,7 @@
       cursor: not-allowed;
     }
 
-    /* Métricas con Sparklines de la captura */
+    /* Métricas con Sparklines */
     .summary {
       display: grid;
       grid-template-columns: repeat(6, minmax(140px, 1fr));
@@ -194,7 +196,6 @@
       font-weight: 700;
     }
 
-    /* Simulación visual de los sparklines de la captura original */
     .card::after {
       content: "";
       position: absolute;
@@ -207,7 +208,7 @@
     }
 
     .card:nth-child(5)::after, .card:nth-child(6)::after {
-      display: none; /* Quitar en las dos últimas tarjetas añadidas si se desea */
+      display: none;
     }
 
     /* Inputs y Filtros */
@@ -253,17 +254,20 @@
       margin: 0;
     }
 
-    /* Layout en dos columnas */
+    /* Layout en dos columnas acopladas por altura */
     .layout {
       display: grid;
       grid-template-columns: 1fr 340px;
       gap: 20px;
-      align-items: start;
+      align-items: stretch; /* Fuerza a que ambas columnas midan exactamente lo mismo */
+      height: calc(100vh - 340px); /* Define la altura máxima uniforme basada en el viewport */
+      min-height: 500px; /* Asegura un tamaño mínimo confortable en pantallas pequeñas */
     }
 
+    /* Tabla con Scroll interno */
     .table-wrap {
       overflow: auto;
-      max-height: calc(100vh - 340px);
+      height: 100%; /* Toma el 100% de la altura asignada por el .layout */
       border-radius: var(--radius);
       border: 1px solid var(--line);
       background: var(--panel);
@@ -347,13 +351,15 @@
       color: var(--muted);
     }
 
-    /* Sección Lateral de Proveedores */
+    /* Sección Lateral de Proveedores con Scroll interno */
     .provider-list {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%; /* Toma el 100% de la altura asignada por el .layout */
     }
 
     .provider-list h2 {
@@ -365,6 +371,12 @@
       color: var(--muted);
       border-bottom: 1px solid var(--line);
       background: rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
+    }
+
+    #providersContainer {
+      overflow-y: auto; /* Permite scroll vertical independiente a la lista de proveedores */
+      flex: 1;
     }
 
     .provider-item {
@@ -434,9 +446,13 @@
       }
       .layout {
         grid-template-columns: 1fr;
+        height: auto;
       }
       .table-wrap {
-        max-height: none;
+        max-height: 500px;
+      }
+      .provider-list {
+        max-height: 400px;
       }
     }
 
@@ -448,6 +464,7 @@
 </head>
 <body>
 
+  <!-- Sidebar Lateral Izquierdo -->
   <aside class="sidebar">
     <div class="brand">
       <span class="logo-icon">I</span> INJUSA
@@ -461,6 +478,7 @@
     </nav>
   </aside>
 
+  <!-- Contenedor Principal de la App -->
   <div class="app-container">
     <header>
       <h1>INJUSA · Dashboard Compras Dark Mode</h1>
@@ -528,7 +546,7 @@
       </section>
 
       <section class="layout">
-        <div>
+        <div class="table-wrap">
           <div id="tableContainer"></div>
         </div>
 
@@ -748,25 +766,23 @@
       }).join('');
 
       container.innerHTML = `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>No</th>
-                <th>Descripción</th>
-                <th>Tipo</th>
-                <th class="num">Coste</th>
-                <th class="num">Recepción</th>
-                <th class="num">Necesidad</th>
-                <th class="num">Stock</th>
-                <th class="num">Importe neto</th>
-                <th>Proveedor</th>
-                <th>Vendor</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Descripción</th>
+              <th>Tipo</th>
+              <th class="num">Coste</th>
+              <th class="num">Recepción</th>
+              <th class="num">Necesidad</th>
+              <th class="num">Stock</th>
+              <th class="num">Importe neto</th>
+              <th>Proveedor</th>
+              <th>Vendor</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
       `;
     }
 
@@ -819,70 +835,34 @@
       }
     }
 
+    // Funciones auxiliares idénticas
     function parseNumber(value) {
       if (value === null || value === undefined) return 0;
-
-      const s = String(value)
-        .trim()
-        .replace(/\./g, '')
-        .replace(',', '.');
-
+      const s = String(value).trim().replace(/\./g, '').replace(',', '.');
       const n = Number(s);
       return Number.isFinite(n) ? n : 0;
     }
 
     function getImporteNeto(row) {
       const directo = parseNumber(row.importe_neto);
-
-      if (directo !== 0) {
-        return directo;
-      }
-
+      if (directo !== 0) return directo;
       return parseNumber(row.single_level_material_cost) * parseNumber(row.necesidad_neta_nn);
     }
 
-    function clean(value) {
-      return String(value || '').trim();
-    }
-
-    function formatInt(value) {
-      return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value || 0);
-    }
-
-    function formatNumber(value) {
-      return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 }).format(value || 0);
-    }
-
+    function clean(value) { return String(value || '').trim(); }
+    function formatInt(value) { return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(value || 0); }
+    function formatNumber(value) { return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 }).format(value || 0); }
     function formatCurrency(value) {
-      return new Intl.NumberFormat('es-ES', {
-        style: 'currency',
-        currency: 'EUR',
-        maximumFractionDigits: 2
-      }).format(value || 0);
+      return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(value || 0);
     }
-
-    function setStatus(message) {
-      document.getElementById('status').textContent = message;
-    }
-
+    function setStatus(message) { document.getElementById('status').textContent = message; }
     function setError(message) {
-      document.getElementById('error').innerHTML = message
-        ? `<div class="error">${escapeHtml(message)}</div>`
-        : '';
+      document.getElementById('error').innerHTML = message ? `<div class="error">${escapeHtml(message)}</div>` : '';
     }
-
     function escapeHtml(value) {
-      return String(value || '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+      return String(value || '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
     }
-
-    function escapeAttribute(value) {
-      return escapeHtml(value).replaceAll('`', '&#096;');
-    }
+    function escapeAttribute(value) { return escapeHtml(value).replaceAll('`', '&#096;'); }
 
     loadData();
   </script>
