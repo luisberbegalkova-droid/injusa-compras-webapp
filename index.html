@@ -757,7 +757,7 @@
             <td class="num">${escapeHtml(row.single_level_material_cost)}</td>
             <td class="num">${escapeHtml(row.recepcion_programada_rp)}</td>
             <td class="num need">${escapeHtml(row.necesidad_neta_nn)}</td>
-            <td class="num">${escapeHtml(row.inventory_injusa)}</td>
+            <td class="num">${escapeHtml(getStock(row))}</td>
             <td class="num"><strong>${formatCurrency(importe)}</strong></td>
             <td>${proveedor}</td>
             <td>${vendor}</td>
@@ -847,6 +847,10 @@
       const directo = parseNumber(row.importe_neto);
       if (directo !== 0) return directo;
       return parseNumber(row.single_level_material_cost) * parseNumber(row.necesidad_neta_nn);
+    }
+
+    function getStock(row) {
+      return row.stock_total || row.control1100000 || row.inventory_injusa || '';
     }
 
     function clean(value) { return String(value || '').trim(); }
