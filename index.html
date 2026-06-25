@@ -544,8 +544,8 @@
           Solo sin proveedor
         </label>
         <label class="check">
-          <input id="stockCeroCheck" type="checkbox" onchange="render()" checked />
-          Ocultar stock 0
+          <input id="necesidadCeroCheck" type="checkbox" onchange="render()" checked />
+          Ocultar necesidad neta 0
         </label>
       </section>
 
@@ -668,7 +668,7 @@
       const search = clean(document.getElementById('searchInput').value).toLowerCase();
       const provider = document.getElementById('providerFilter').value;
       const onlyNoProvider = document.getElementById('sinProveedorCheck').checked;
-      const ocultarStockCero = document.getElementById('stockCeroCheck').checked;
+      const ocultarNecesidadCero = document.getElementById('necesidadCeroCheck').checked;
       const sort = document.getElementById('sortFilter').value;
       let data = rawData.filter(row => {
         const categoria = clean(row.itemcategorygroup_wau);
@@ -677,7 +677,7 @@
         if (activeCategoria && categoria !== activeCategoria) return false;
         if (provider && prov !== provider) return false;
         if (onlyNoProvider && prov) return false;
-        if (ocultarStockCero && parseNumber(getStock(row)) === 0) return false;
+        if (ocultarNecesidadCero && parseNumber(row.necesidad_neta_nn) === 0) return false;
 
         if (search) {
           const text = [
